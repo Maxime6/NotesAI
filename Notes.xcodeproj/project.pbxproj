@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		9CA2834A2D68D5A40086CE61 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9CA283492D68D5A40086CE61 /* MarkdownUI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		9CCEB2EB2D3FE16F008E74C6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9CA2834A2D68D5A40086CE61 /* MarkdownUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = Notes;
 			packageProductDependencies = (
+				9CA283492D68D5A40086CE61 /* MarkdownUI */,
 			);
 			productName = Notes;
 			productReference = 9CCEB2DA2D3FE16E008E74C6 /* Notes.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 9CCEB2D12D3FE16E008E74C6;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9CA283482D68D5A40086CE61 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9CCEB2DB2D3FE16E008E74C6 /* Products */;
 			projectDirPath = "";
@@ -558,6 +567,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9CA283482D68D5A40086CE61 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9CA283492D68D5A40086CE61 /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9CA283482D68D5A40086CE61 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
+			productName = MarkdownUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9CCEB2D22D3FE16E008E74C6 /* Project object */;
 }
