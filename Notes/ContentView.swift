@@ -15,6 +15,9 @@ struct ContentView: View {
     @State private var generatedNotes: String = ""
     @State private var errorMessage: String = ""
     @State private var streamTask: Task<Void, Never>?
+    @State private var scrollOffset: CGFloat = 0
+    @State var isAnimating: Bool = false
+    @Environment(\.colorScheme) var colorScheme
 
     // Get API key from environment
     private var apiKey: String {
@@ -31,7 +34,9 @@ struct ContentView: View {
     private func generateNotes() async {
         guard !inputText.isEmpty else { return }
 
-        isLoading = true
+        withAnimation(.easeIn(duration: 0.5).delay(0.5)) {
+            isLoading = true
+        }
         errorMessage = ""
         generatedNotes = ""
 
@@ -54,59 +59,105 @@ struct ContentView: View {
         ZStack {
             Color(.systemGray6).edgesIgnoringSafeArea(.all)
 
-            ScrollView {
-                VStack(spacing: 20) {
-                    // First card - Generate Notes
+            ScrollViewReader { proxy in
+                ScrollView {
+                    GeometryReader { geometry in
+                        Color.clear.onChange(of: geometry.frame(in: .named("scroll")).minY) { value in
+                            scrollOffset = -value
+                            print("Scroll offset: \(scrollOffset)")
+                        }
+                    }
+                    .frame(height: 0)
+
                     VStack(spacing: 20) {
-                        Text("Generate Notes")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        // First card - Generate Notes
+                        VStack(spacing: 20) {
+                            if !isLoading {
+                                Text("Generate Notes")
+                                    .customAttribute(EmphasisAttribute())
+                                    .transition(TextTransition())
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 32)
+                            }
 
-                        Text("Transform your thoughts into well-structured notes using artificial intelligence.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            Text("Transform your thoughts into well-structured notes using artificial intelligence.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 32)
 
-                        TextEditor(text: $inputText)
-                            .frame(height: 200)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(.primary.opacity(0.1), lineWidth: 1)
-                            )
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color(.systemBackground))
-                                    .shadow(color: .black.opacity(0.05), radius: 15, x: 0, y: 5)
-                            )
+                            // Add PromptTemplates here
+                            PromptTemplates { prompt in
+                                inputText = prompt
+                            }
+                            .padding(.vertical, 8)
 
-                        PrimaryButton(isLoading: isLoading, isDisabled: inputText.isEmpty) {
-                            Task {
-                                await generateNotes()
+                            TextEditor(text: $inputText)
+                                .frame(height: 200)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(.primary.opacity(0.1), lineWidth: 1)
+                                )
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color(.systemBackground))
+                                        .shadow(color: .black.opacity(0.05), radius: 15, x: 0, y: 5)
+                                )
+                                .padding(.horizontal, 32)
+                                .overlay {
+                                    AnimatedMeshGradient()
+                                        .blendMode(colorScheme == .dark ? .colorBurn : .screen)
+                                }
+
+                            PrimaryButton(isLoading: isLoading, isDisabled: inputText.isEmpty) {
+                                Task {
+                                    await generateNotes()
+                                }
+                            }
+                            .padding(.horizontal, 32)
+
+                            if !errorMessage.isEmpty {
+                                Text(errorMessage)
+                                    .foregroundColor(.red)
+                                    .font(.callout)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 32)
                             }
                         }
+                        .padding(.vertical, 32)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(44)
+                        .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
 
-                        if !errorMessage.isEmpty {
-                            Text(errorMessage)
-                                .foregroundColor(.red)
-                                .font(.callout)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                        // Generated Notes card
+                        if !generatedNotes.isEmpty {
+                            GeneratedNotesCard(content: generatedNotes)
+                                .id(1) // Add an ID for scrolling
+                                .onChange(of: generatedNotes) {
+                                    withAnimation {
+                                        proxy.scrollTo(1, anchor: .bottom)
+                                    }
+                                }
                         }
                     }
-                    .padding(32)
-                    .background(Color(.systemBackground))
-                    .cornerRadius(44)
-                    .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
-
-                    // Generated Notes card
-                    if !generatedNotes.isEmpty {
-                        GeneratedNotesCard(content: generatedNotes)
+                    .padding()
+                    .padding(.top, 20)
+                    .blur(radius: showSignUp ? 5 : 0)
+                    .safeAreaInset(edge: .bottom) {
+                        if scrollOffset > 50 {
+                            CircleButton(icon: "arrow.up") {
+                                withAnimation {
+                                    proxy.scrollTo(0, anchor: .top)
+                                }
+                            }
+                            .padding(.bottom, 32)
+                        }
                     }
                 }
-                .padding()
-                .padding(.top, 20)
-                .blur(radius: showSignUp ? 5 : 0)
+                .coordinateSpace(name: "scroll")
             }
 
             VStack {
@@ -133,6 +184,16 @@ struct ContentView: View {
                             .ignoresSafeArea()
                     )
                     .zIndex(1)
+            }
+            
+            if isLoading {
+                AnimatedMeshGradient()
+                    .mask(
+                        RoundedRectangle(cornerRadius: 44)
+                            .stroke(lineWidth: 44)
+                            .blur(radius: 22)
+                    )
+                    .ignoresSafeArea()
             }
         }
     }
